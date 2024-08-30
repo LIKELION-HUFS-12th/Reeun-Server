@@ -1,11 +1,8 @@
 # community/member/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-# Create your models here.
 
 class CustomUser(AbstractUser):
-  REQUIRED_FIELDS = []
-  email = None
-  nickname = models.CharField(max_length=100)
-  university = models.CharField(max_length=50)
-  location = models.CharField(max_length=200)
+    REQUIRED_FIELDS = []
+    email = None  # 이메일 필드 제거
+    nickname = models.CharField(max_length=100)  # 닉네임 필드 추가
