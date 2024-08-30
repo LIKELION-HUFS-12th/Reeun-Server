@@ -1,13 +1,11 @@
-# community/board/urls.py
+# board/urls.py
+
 from django.urls import path
-from .views import *
-
-
-app_name = 'board'
+from .views import BoardList, BoardDetail, CommentList, CommentDetail
 
 urlpatterns = [
-    # path('', board_list),
-    # path('<int:pk>/', board_detail),
-    path('', BoardList.as_view()),
-    path('<int:pk>/', BoardDetail.as_view()),
+    path('', BoardList.as_view(), name='board-list'),
+    path('<int:post_id>/', BoardDetail.as_view(), name='board-detail'),
+    path('<int:post_id>/comment/', CommentList.as_view(), name='comment-list'),
+    path('<int:post_id>/comment/<int:comment_id>/', CommentDetail.as_view(), name='comment-detail'),
 ]

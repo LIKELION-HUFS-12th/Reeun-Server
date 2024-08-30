@@ -1,24 +1,17 @@
-# community/board/views.py
-from django.shortcuts import render
-from .models import Board
-from .serializers import BoardSerializer
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from .permissions import IsOwnerOrReadOnly
-from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListCreateAPIView
-from rest_framework.generics import RetrieveUpdateDestroyAPIView
+# board/views.py
 
-'''
-전체 블로그를 조회
-'''
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from .models import Board, Comment
+from .serializers import BoardSerializer, CommentSerializer
+
 class BoardList(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         boards = Board.objects.all()
         serializer = BoardSerializer(boards, many=True)
@@ -26,53 +19,81 @@ class BoardList(APIView):
 
     def post(self, request):
         serializer = BoardSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-"""
-class BoardList(ListCreateAPIView):
-    queryset = Board.objects.all()
-    serializer_class = BoardSerializer
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticatedOrReadOnly]
-		
-    def perform_create(self, serializer):
-        user = self.request.user
-        serializer.save(user = user)
-"""
-
-'''
-한 블로그 조회
-'''
 class BoardDetail(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsOwnerOrReadOnly]
-    def get_object(self, pk):
-        board = get_object_or_404(Board, pk=pk)
-        return board
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
-        board = self.get_object(pk)
+    def get(self, request, post_id):
+        try:
+            board = Board.objects.get(pk=post_id)
+        except Board.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
         serializer = BoardSerializer(board)
         return Response(serializer.data)
 
-    def put(self, request, pk):
-        board = self.get_object(pk)
+    def put(self, request, post_id):
+        try:
+            board = Board.objects.get(pk=post_id)
+        except Board.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
         serializer = BoardSerializer(board, data=request.data)
-        if serializer.is_valid(raise_exception=True):
+        if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
-        board = self.get_object(pk)
+    def delete(self, request, post_id):
+        try:
+            board = Board.objects.get(pk=post_id)
+        except Board.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
         board.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class BoardDetail(RetrieveUpdateDestroyAPIView):
-    queryset = Board.objects.all()
-    serializer_class = BoardSerializer
+class CommentList(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, post_id):
+        try:
+            board = Board.objects.get(pk=post_id)
+        except Board.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        comments = board.comments.all()
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, post_id):
+        try:
+            board = Board.objects.get(pk=post_id)
+        except Board.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            # 댓글 작성 시 'user'와 'board'를 설정하여 저장
+            comment = serializer.save(user=request.user, board=board)
+            return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CommentDetail(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, post_id, comment_id):
+        try:
+            comment = Comment.objects.get(pk=comment_id, board_id=post_id)
+        except Comment.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
