@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     # simple-jwt 관련
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -192,9 +193,9 @@ ACCOUNT_EMAIL_VERIFICATION = 'none' # 이 부분
 ACCOUNT_EMAIL_REQUIRED = False # 이 부분
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1), # 이 부분
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1), # 이 부분
     'REFRESH_TOKEN_LIFETIME' : timedelta(days=1), # 이 부분
-    'ROTATE_REFRESH_TOKENS': False,
+    'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',

@@ -1,38 +1,35 @@
 # community/member/serializers.py
-from dj_rest_auth.registration.serializers import RegisterSerializer
-from allauth.account.adapter import get_adapter
 from rest_framework import serializers
-from .models import CustomUser
+from django.contrib.auth import get_user_model
 
-class CustomRegisterSerializer(RegisterSerializer):
+User = get_user_model()
+
+# 회원가입 시리얼라이저
+class CustomRegisterSerializer(serializers.ModelSerializer):
+    password1 = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
     nickname = serializers.CharField(max_length=100)
-    university = serializers.CharField(max_length=50)
-    location = serializers.CharField(max_length=200)
-    
-    def get_cleaned_data(self):
-        super(CustomRegisterSerializer, self).get_cleaned_data()
-        return {
-            'username': self.validated_data.get('username', ''),
-            'password1': self.validated_data.get('password1', ''),
-            'password2': self.validated_data.get('password2', ''),
-            'nickname': self.validated_data.get('nickname', ''),
-            'university': self.validated_data.get('university', ''),
-            'location': self.validated_data.get('location', ''),
-        }
-    
-    def save(self, request):
-        adapter = get_adapter()
-        user = adapter.new_user(request)
-        self.cleaned_data = self.get_cleaned_data()
-        user.username = self.cleaned_data.get('username')
-        user.nickname = self.cleaned_data.get('nickname')
-        user.university = self.cleaned_data.get('university')
-        user.location = self.cleaned_data.get('location')
+
+    class Meta:
+        model = User
+        fields = ('username', 'password1', 'password2', 'nickname')
+
+    def validate(self, data):
+        if data['password1'] != data['password2']:
+            raise serializers.ValidationError("Passwords do not match")
+        return data
+
+    def create(self, validated_data):
+        user = User(
+            username=validated_data['username'],
+            nickname=validated_data['nickname']
+        )
+        user.set_password(validated_data['password1'])
         user.save()
-        adapter.save_user(request, user, self)
         return user
 
+# 사용자 세부 정보 시리얼라이저
 class CustomUserDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomUser
-        fields = ['id', 'username', 'password', 'nickname', 'university', 'location']
+        model = User
+        fields = ['id', 'username', 'nickname']
