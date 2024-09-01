@@ -169,6 +169,15 @@ cython_debug/
 
 myvenv/
 
+# SSL/TLS
+cert/*
+init-letsencrypt.sh
+
+# Docker Etc
+Dockerfile
+docker-compose.yml
+nginx.default.conf
+
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
