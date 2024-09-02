@@ -1,8 +1,7 @@
-# community/member/urls.py
 from django.urls import path
 from .views import (
     UserRegisterView, UserLoginView, UserLogoutView, UserDeleteView,
-    UserProfileView, UserProfileUpdateView, SchoolListView
+    UserProfileView, GradeView, SchoolListView
 )
 
 app_name = 'member'
@@ -12,7 +11,7 @@ urlpatterns = [
     path('login/', UserLoginView.as_view(), name='login'),  # 로그인
     path('logout/', UserLogoutView.as_view(), name='logout'),  # 로그아웃
     path('delete/', UserDeleteView.as_view(), name='delete'),  # 회원탈퇴
-    path('profile/', UserProfileView.as_view(), name='profile'),  # 유저 프로필 조회 및 생성
-    path('profile/update/', UserProfileUpdateView.as_view(), name='profile_update'),  # 유저 프로필 수정
+    path('profile/', UserProfileView.as_view(), name='user_profile'),  # 유저 정보 조회 및 생성
+    path('grades/', GradeView.as_view(), name='grade_view'),  # 반 정보 조회 및 수정
     path('schools/', SchoolListView.as_view(), name='schools'),  # 학교 목록 조회
 ]
