@@ -20,3 +20,12 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.comment
+
+# 학교 데이터 파일용 코드
+class School(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    province = models.CharField(max_length=100)
+    school_type = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
