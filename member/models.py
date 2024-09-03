@@ -1,6 +1,7 @@
+# community/member/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.db.models import JSONField  # JSONField 임포트
+from django.db.models import JSONField  # 변경된 부분
 
 class CustomUser(AbstractUser):
     REQUIRED_FIELDS = []
@@ -39,6 +40,7 @@ class UserProfile(models.Model):
     def __str__(self):
         return f'{self.user.username} Profile'
 
+# 학교 데이터용 코드
 class School(models.Model):
     city = models.CharField(max_length=100)
     school_type = models.CharField(max_length=100)
