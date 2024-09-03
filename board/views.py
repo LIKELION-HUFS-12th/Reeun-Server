@@ -39,7 +39,7 @@ class BoardList(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         user_school_id = profile.school.id
-        
+
         data = request.data.copy()
         data['school'] = user_school_id  
 
