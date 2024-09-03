@@ -4,5 +4,6 @@ from .views import *
 app_name = 'message'
 
 urlpatterns = [
-    path('send/', SendMessageAPI.as_view()),
+    path('sendMessage/', SendMessageAPI.as_view()),
+    path('getMessage/', GetMessageAPI.as_view()),
 ]
