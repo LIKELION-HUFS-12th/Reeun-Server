@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from .models import UserProfile, School
-from .serializers import UserProfileSerializer, CustomRegisterSerializer, SchoolSerializer
+from .serializers import UserProfileSerializer, GradeSerializer, CustomRegisterSerializer, CustomUserDetailSerializer, SchoolSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from dj_rest_auth.views import LoginView
@@ -61,17 +61,23 @@ class UserDeleteView(APIView):
             return Response({"detail": "회원탈퇴가 완료되었습니다."}, status=status.HTTP_204_NO_CONTENT)
         return Response({"detail": "비밀번호가 틀렸습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-# 유저 프로필 조회 및 생성
+# 유저 정보 조회 및 생성
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        user = request.user
         try:
-            profile = UserProfile.objects.get(user=request.user)
-            serializer = UserProfileSerializer(profile)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            profile = UserProfile.objects.get(user=user)
         except UserProfile.DoesNotExist:
             return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        user_serializer = CustomUserDetailSerializer(user)
+        profile_serializer = UserProfileSerializer(profile)
+
+        data = user_serializer.data
+        data.update(profile_serializer.data)
+        return Response(data, status=status.HTTP_200_OK)
 
     def post(self, request):
         if UserProfile.objects.filter(user=request.user).exists():
@@ -82,10 +88,18 @@ class UserProfileView(APIView):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-# 유저 프로필 수정
-class UserProfileUpdateView(APIView):
+
+# 반 정보 조회 및 수정
+class GradeView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            serializer = GradeSerializer(profile)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except UserProfile.DoesNotExist:
+            return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request):
         try:
@@ -93,12 +107,12 @@ class UserProfileUpdateView(APIView):
         except UserProfile.DoesNotExist:
             return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        serializer = GradeSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 # 학교 목록 조회
 class SchoolListView(APIView):
     permission_classes = [AllowAny]

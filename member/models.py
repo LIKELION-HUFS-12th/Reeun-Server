@@ -1,7 +1,7 @@
 # community/member/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.db.models import JSONField  # 변경된 부분
+from django.db.models import JSONField  # JSONField 임포트
 
 class CustomUser(AbstractUser):
     REQUIRED_FIELDS = []
