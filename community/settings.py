@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'board',
     'member',
     'classboard',
+    'message',
     # Swagger
     'drf_yasg',
     #rest framework 관련
