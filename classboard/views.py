@@ -1,4 +1,5 @@
 # community/classboard/views.py
+
 from django.http import Http404 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -71,10 +72,11 @@ class ClassBoardList(generics.ListCreateAPIView):
             serializer.save(user=request.user, school=profile.school, admission_year=admission_year)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class ClassBoardDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClassBoardSerializer
     permission_classes = [IsAuthenticated]
-    lookup_field = 'id'  # 기본 lookup_field를 'id'로 설정합니다.
+    lookup_field = 'id'  
 
     def get_profile(self):
         user = self.request.user
@@ -137,14 +139,14 @@ class CommentList(generics.ListCreateAPIView):
         grade = self.kwargs.get('grade')
         post_id = self.kwargs.get('post_id')
 
-        if post_id:  # 특정 게시글의 댓글을 가져올 때
+        if post_id:  
             return Comment.objects.filter(
                 class_board__grade=grade,
                 class_board__id=post_id,
                 class_board__school=profile.school,
                 class_board__admission_year=profile.admission_year
             )
-        else:  # 모든 댓글을 가져올 때
+        else:  
             return Comment.objects.filter(
                 class_board__grade=grade,
                 class_board__school=profile.school,
@@ -182,7 +184,7 @@ class CommentList(generics.ListCreateAPIView):
 class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
-    lookup_field = 'pk'  # URL 패턴에서 사용한 인자 이름
+    lookup_field = 'pk'  
 
     def get_profile(self):
         user = self.request.user
@@ -198,7 +200,7 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
 
         grade = self.kwargs.get('grade')
         post_id = self.kwargs.get('post_id')
-        comment_id = self.kwargs.get('pk')  # 변경된 부분
+        comment_id = self.kwargs.get('pk') 
         if not grade or not post_id or not comment_id:
             return Comment.objects.none()
 

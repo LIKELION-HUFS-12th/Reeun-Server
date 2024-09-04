@@ -1,174 +1,163 @@
 # community/board/views.py
 
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from django.http import Http404
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from .models import Board, Comment, School
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Board, Comment
 from .serializers import BoardSerializer, CommentSerializer
 from member.models import UserProfile
 
-# 게시글 목록 조회 및 게시글 작성
-class BoardList(APIView):
-    authentication_classes = [JWTAuthentication]
+class BoardList(generics.ListCreateAPIView):
+    queryset = Board.objects.all()
+    serializer_class = BoardSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get_profile(self):
+        user = self.request.user
         try:
-            profile = UserProfile.objects.get(user=request.user)
+            return UserProfile.objects.get(user=user)
         except UserProfile.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return None
 
-        school_instance = School.objects.get(id=profile.school.id)
+    def get_queryset(self):
+        profile = self.get_profile()
+        if not profile:
+            return Board.objects.none()
 
-        if not isinstance(school_instance, School):
-            return Response({"error": "Invalid school reference"}, status=status.HTTP_400_BAD_REQUEST)
+        school = profile.school
+        admission_year = profile.admission_year
 
-        boards = Board.objects.filter(school=school_instance)
-        if not boards.exists():
-            return Response({"error": "No boards found for the school"}, status=status.HTTP_404_NOT_FOUND)
+        return Board.objects.filter(
+            school=school,
+            admission_year=admission_year
+        )
 
-        serializer = BoardSerializer(boards, many=True)
-        return Response(serializer.data)
+    def post(self, request, *args, **kwargs):
+        profile = self.get_profile()
+        if not profile:
+            return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
 
-    def post(self, request):
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-        except UserProfile.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        user_school_id = profile.school.id
+        admission_year = profile.admission_year
 
         data = request.data.copy()
-        data['school'] = user_school_id  
+        if 'school' in data:
+            data.pop('school')
 
-        serializer = BoardSerializer(data=data, context={'request': request})
+        serializer = self.get_serializer(data=data, context={'request': request})
         if serializer.is_valid():
-            board = serializer.save(user=request.user)  
-            return Response(BoardSerializer(board).data, status=status.HTTP_201_CREATED)
+            serializer.save(user=request.user, school=profile.school, admission_year=admission_year)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# 특정 게시글의 상세 조회, 수정, 삭제
-class BoardDetail(APIView):
-    authentication_classes = [JWTAuthentication]
+class BoardDetail(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = BoardSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_profile(self):
+        user = self.request.user
+        try:
+            return UserProfile.objects.get(user=user)
+        except UserProfile.DoesNotExist:
+            return None
+
+    def get_queryset(self):
+        profile = self.get_profile()
+        if not profile:
+            return Board.objects.none()
+
+        post_id = self.kwargs.get('post_id')
+        if not post_id:
+            return Board.objects.none()
+
+        return Board.objects.filter(
+            id=post_id,
+            school=profile.school,
+            admission_year=profile.admission_year
+        )
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        post_id = self.kwargs.get('post_id')
+        try:
+            return queryset.get(id=post_id)
+        except Board.DoesNotExist:
+            raise Http404
+
+class CommentList(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, post_id):
+    def get_profile(self):
+        user = self.request.user
         try:
-            board = Board.objects.get(pk=post_id)
-        except Board.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        
-        try:
-            profile = UserProfile.objects.get(user=request.user)
+            return UserProfile.objects.get(user=user)
         except UserProfile.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return None
 
-        if board.school.id != profile.school.id:  # 유저의 학교와 게시글의 학교가 일치하는지 확인
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        
-        serializer = BoardSerializer(board)
-        return Response(serializer.data)
+    def get_queryset(self):
+        profile = self.get_profile()
+        if not profile:
+            return Comment.objects.none()
 
-    def put(self, request, post_id):
-        try:
-            board = Board.objects.get(pk=post_id)
-        except Board.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-        except UserProfile.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        post_id = self.kwargs.get('post_id')
+        if post_id:
+            return Comment.objects.filter(
+                board__id=post_id,
+                board__school=profile.school,
+                board__admission_year=profile.admission_year
+            )
+        else:
+            return Comment.objects.filter(
+                board__school=profile.school,
+                board__admission_year=profile.admission_year
+            )
 
-        if board.school.id != profile.school.id:  # 유저의 학교와 게시글의 학교가 일치하는지 확인
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        
-        serializer = BoardSerializer(board, data=request.data, partial=True)
+    def post(self, request, *args, **kwargs):
+        profile = self.get_profile()
+        if not profile:
+            return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        post_id = self.kwargs.get('post_id')
+        if not post_id:
+            return Response({"detail": "Post ID not provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = request.data.copy()
+        data['board'] = post_id
+
+        serializer = self.get_serializer(data=data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, post_id):
-        try:
-            board = Board.objects.get(pk=post_id)
-        except Board.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-        except UserProfile.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        if board.school.id != profile.school.id:  # 유저의 학교와 게시글의 학교가 일치하는지 확인
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        
-        board.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-# 특정 게시글에 대한 댓글 목록 조회 및 댓글 작성
-class CommentList(APIView):
-    authentication_classes = [JWTAuthentication]
+class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
+    lookup_field = 'pk'
 
-    def get(self, request, post_id):
+    def get_profile(self):
+        user = self.request.user
         try:
-            board = Board.objects.get(pk=post_id)
-        except Board.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            profile = UserProfile.objects.get(user=request.user)
+            return UserProfile.objects.get(user=user)
         except UserProfile.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return None
 
-        if board.school.id != profile.school.id: 
-            return Response({"error": "You do not have permission to view comments on this board."}, status=status.HTTP_403_FORBIDDEN)
-        
-        comments = board.comments.all()
-        serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        profile = self.get_profile()
+        if not profile:
+            return Comment.objects.none()
 
-    def post(self, request, post_id):
-        try:
-            board = Board.objects.get(pk=post_id)
-        except Board.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        post_id = self.kwargs.get('post_id')
+        comment_id = self.kwargs.get('pk')
+        if not post_id or not comment_id:
+            return Comment.objects.none()
 
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-        except UserProfile.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        if board.school.id != profile.school.id:  
-            return Response({"error": "You do not have permission to comment on this board."}, status=status.HTTP_403_FORBIDDEN)
-        
-        serializer = CommentSerializer(data=request.data)
-        if serializer.is_valid():
-            comment = serializer.save(user=request.user, board=board)
-            return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# 특정 게시글에 대한 특정 댓글 삭제
-class CommentDetail(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def delete(self, request, post_id, comment_id):
-        try:
-            comment = Comment.objects.get(pk=comment_id, board_id=post_id)
-        except Comment.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        
-        try:
-            profile = UserProfile.objects.get(user=request.user)
-        except UserProfile.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        if comment.board.school.id != profile.school.id:  # 유저의 학교와 게시글의 학교가 일치하는지 확인
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        
-        comment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Comment.objects.filter(
+            board__id=post_id,
+            id=comment_id,
+            board__school=profile.school,
+            board__admission_year=profile.admission_year
+        )
