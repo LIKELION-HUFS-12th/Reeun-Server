@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'board',
     'member',
+    'classboard',
     #rest framework 관련
     'rest_framework',
     'rest_framework.authtoken',
