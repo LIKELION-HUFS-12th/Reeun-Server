@@ -3,7 +3,7 @@ from .models import Message
 from member.serializers import GetNicknameSerializer
 
 class SendMessageClientSerializer(serializers.ModelSerializer):
-    receiverId = serializers.IntegerField
+    receiverId = serializers.IntegerField()
 
     class Meta:
         model = Message
@@ -16,9 +16,6 @@ class SendMessageServerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['sender', 'receiver', 'content']
-
-class GetMessageClientSerializer(serializers.Serializer):
-    otherId = serializers.IntegerField()
 
 class GetMessageServerSerializer(serializers.ModelSerializer):
     sender = GetNicknameSerializer()
