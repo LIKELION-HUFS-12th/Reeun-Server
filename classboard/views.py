@@ -9,6 +9,7 @@ from .models import ClassBoard, Comment
 from .serializers import ClassBoardSerializer, CommentSerializer
 from member.models import UserProfile
 
+# 학급게시판 게시글 리스트와 생성 API
 class ClassBoardList(generics.ListCreateAPIView):
     serializer_class = ClassBoardSerializer
     permission_classes = [IsAuthenticated]
@@ -48,18 +49,18 @@ class ClassBoardList(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         profile = self.get_profile()
         if not profile:
-            return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "프로필을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         grade = self.kwargs.get('grade')
         if not grade:
-            return Response({"detail": "Grade not provided."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "학년이 제공되지 않았습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         grade_key = f'grade_{grade}'
         class_number_field = f'class_number_{grade}'
         class_number = profile.grades.get(grade_key, {}).get(class_number_field)
 
         if class_number is None:
-            return Response({"detail": "No class number available for the given grade."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "주어진 학년에 대해 사용할 수 있는 수업 번호가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         admission_year = profile.admission_year
 
@@ -73,6 +74,7 @@ class ClassBoardList(generics.ListCreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+# 학급 게시판 게시글 상세 조회, 업데이트, 삭제 API
 class ClassBoardDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClassBoardSerializer
     permission_classes = [IsAuthenticated]
@@ -120,6 +122,7 @@ class ClassBoardDetail(generics.RetrieveUpdateDestroyAPIView):
         except ClassBoard.DoesNotExist:
             raise Http404
         
+# 학급 게시판 댓글 리스트와 생성 API
 class CommentList(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
@@ -156,19 +159,19 @@ class CommentList(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         profile = self.get_profile()
         if not profile:
-            return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "프로필을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         grade = self.kwargs.get('grade')
         post_id = self.kwargs.get('post_id')
         if not grade or not post_id:
-            return Response({"detail": "Grade or post ID not provided."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "학년 또는 게시글 ID가 제공되지 않았습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         grade_key = f'grade_{grade}'
         class_number_field = f'class_number_{grade}'
         class_number = profile.grades.get(grade_key, {}).get(class_number_field)
 
         if class_number is None:
-            return Response({"detail": "No class number available for the given grade."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "주어진 학년에 대해 사용할 수 있는 수업 번호가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         admission_year = profile.admission_year
 
@@ -181,6 +184,7 @@ class CommentList(generics.ListCreateAPIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# 학급 게시판 댓글 상세 조회, 업데이트, 삭제 API
 class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
