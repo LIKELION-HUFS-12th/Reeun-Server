@@ -1,5 +1,6 @@
 # community/classboard/views.py
 
+from django.contrib.auth.models import AnonymousUser
 from django.http import Http404 
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -192,6 +193,9 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def get_profile(self):
         user = self.request.user
+        if isinstance(user, AnonymousUser):
+            return None
+    
         try:
             return UserProfile.objects.get(user=user)
         except UserProfile.DoesNotExist:
