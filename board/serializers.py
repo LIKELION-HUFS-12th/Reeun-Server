@@ -5,7 +5,7 @@ from .models import Board, Comment
 from member.models import UserProfile  
 
 # 댓글 데이터 시리얼라이저
-class CommentSerializer(serializers.ModelSerializer):
+class BoardCommentSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')  # 사용자 이름 표시
     created_at = serializers.DateTimeField(format='%Y-%m-%d', read_only=True)  # 생성일 포맷
     board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all(), write_only=True)  # 게시글 참조
@@ -16,7 +16,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 # 게시글 데이터 시리얼라이저
 class BoardSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, read_only=True)  # 댓글 리스트
+    comments = BoardCommentSerializer(many=True, read_only=True)  # 댓글 리스트
     user = serializers.ReadOnlyField(source='user.username')  # 사용자 이름 표시
     created_at = serializers.DateTimeField(format='%Y-%m-%d', read_only=True)  # 생성일 포맷
     school_name = serializers.SerializerMethodField()  # 학교 이름 표시

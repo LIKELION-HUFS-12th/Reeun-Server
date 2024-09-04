@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'board',
     'member',
     'classboard',
+    # Swagger
+    'drf_yasg',
     #rest framework 관련
     'rest_framework',
     'rest_framework.authtoken',

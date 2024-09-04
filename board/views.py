@@ -1,5 +1,6 @@
 # community/board/views.py
 
+from django.contrib.auth.models import AnonymousUser
 from django.http import Http404
 from django.shortcuts import render
 from rest_framework import generics
@@ -7,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Board, Comment
-from .serializers import BoardSerializer, CommentSerializer
+from .serializers import BoardSerializer, BoardCommentSerializer
 from member.models import UserProfile
 
 # 전체 게시판 게시글 목록 조회 및 생성
@@ -91,7 +92,7 @@ class BoardDetail(generics.RetrieveUpdateDestroyAPIView):
 
 # 전체 게시판 댓글 목록 조회 및 생성
 class CommentList(generics.ListCreateAPIView):
-    serializer_class = CommentSerializer
+    serializer_class = BoardCommentSerializer
     permission_classes = [IsAuthenticated]
 
     def get_profile(self):
@@ -139,12 +140,15 @@ class CommentList(generics.ListCreateAPIView):
 
 # 전체 게시판 특정 댓글 조회, 수정, 삭제
 class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = CommentSerializer
+    serializer_class = BoardCommentSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
 
     def get_profile(self):
         user = self.request.user
+        if isinstance(user, AnonymousUser):
+            return None
+    
         try:
             return UserProfile.objects.get(user=user)
         except UserProfile.DoesNotExist:
