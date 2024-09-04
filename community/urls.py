@@ -24,6 +24,7 @@ urlpatterns = [
     path('board/', include('board.urls')),
     path('member/', include('member.urls')),
     path('classboard/', include('classboard.urls')),
+    path('message/', include('message.urls')),
     path('dj/', include('dj_rest_auth.urls')),
     path('dj/registration/', include('dj_rest_auth.registration.urls')),
 
