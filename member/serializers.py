@@ -1,4 +1,5 @@
 # community/member/serializers.py
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import UserProfile, School
@@ -26,13 +27,11 @@ class GradeSerializer(serializers.ModelSerializer):
         for grade, class_info in grades.items():
             if grade in existing_grades:
                 for class_number_key, class_number_value in class_info.items():
-                    # Check if existing value is not None and new value is provided
                     if existing_grades[grade].get(class_number_key) is not None and class_number_value is not None:
                         raise serializers.ValidationError(
                             f"이미 입력된 값인 {grade}-{class_number_key}는 수정할 수 없습니다."
                         )
                     
-                    # Update the value only if it was not previously set
                     if existing_grades[grade].get(class_number_key) is None and class_number_value is not None:
                         existing_grades[grade][class_number_key] = class_number_value
                         modified = True

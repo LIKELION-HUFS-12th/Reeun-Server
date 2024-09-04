@@ -1,4 +1,5 @@
 # community/member/management/commands/import_schools.py
+
 from django.core.management.base import BaseCommand
 import csv
 from member.models import School

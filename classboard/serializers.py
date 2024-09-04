@@ -1,7 +1,5 @@
 # community/classboard/serializers.py
 
-# community/classboard/serializers.py
-
 from rest_framework import serializers
 from .models import ClassBoard, Comment
 from member.models import UserProfile

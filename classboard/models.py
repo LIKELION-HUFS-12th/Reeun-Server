@@ -1,7 +1,5 @@
 # community/classboard/models.py
 
-# community/classboard/models.py
-
 from django.conf import settings
 from django.db import models
 from member.models import School
@@ -11,7 +9,7 @@ class ClassBoard(models.Model):
     title = models.CharField(max_length=255)
     body = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    school = models.ForeignKey(School, on_delete=models.CASCADE, default=1)  # 기본값 설정
+    school = models.ForeignKey(School, on_delete=models.CASCADE, default=1) 
     class_number = models.IntegerField(default=0)
     grade = models.IntegerField(default=0)
     admission_year = models.IntegerField(default=0)

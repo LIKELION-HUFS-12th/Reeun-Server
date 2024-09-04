@@ -5,13 +5,11 @@ from .models import Board, Comment
 
 class BoardAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)  # 'created_at' 필드를 읽기 전용으로 설정
-
-    list_display = ('title', 'user', 'created_at')  # 리스트에 표시할 필드
+    list_display = ('id', 'user', 'title', 'created_at', 'school', 'admission_year')  # 필드 추가
 
 class CommentAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)  # 'created_at' 필드를 읽기 전용으로 설정
-
-    list_display = ('board', 'user', 'comment', 'created_at')  # 리스트에 표시할 필드
+    list_display = ('id', 'user', 'board', 'comment', 'created_at')  # 'class_board'를 'board'로 수정
 
 admin.site.register(Board, BoardAdmin)
 admin.site.register(Comment, CommentAdmin)
