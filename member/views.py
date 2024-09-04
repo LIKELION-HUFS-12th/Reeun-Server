@@ -15,7 +15,7 @@ User = get_user_model()
 
 # 회원가입
 class UserRegisterView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]  # 모든 사용자에게 접근 허용
 
     def post(self, request, *args, **kwargs):
         serializer = CustomRegisterSerializer(data=request.data)
@@ -35,36 +35,36 @@ class UserRegisterView(APIView):
 
 # 로그인
 class UserLoginView(LoginView):
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]  # 모든 사용자에게 접근 허용
 
 # 로그아웃
 class UserLogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 허용
 
     def post(self, request):
         try:
             tokens = OutstandingToken.objects.filter(user=request.user)
             for token in tokens:
-                BlacklistedToken.objects.get_or_create(token=token)
+                BlacklistedToken.objects.get_or_create(token=token)  # 로그아웃 시 모든 토큰을 블랙리스트에 추가
             return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 # 회원탈퇴
 class UserDeleteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 허용
 
     def post(self, request, *args, **kwargs):
         user = request.user
         password = request.data.get("password")
         if user.check_password(password):
-            user.delete()
+            user.delete()  # 비밀번호 확인 후 사용자 삭제
             return Response({"detail": "회원탈퇴가 완료되었습니다."}, status=status.HTTP_204_NO_CONTENT)
         return Response({"detail": "비밀번호가 틀렸습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 # 유저 정보 조회 및 생성
 class UserProfileView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 허용
 
     def get(self, request):
         user = request.user
@@ -77,7 +77,7 @@ class UserProfileView(APIView):
         profile_serializer = UserProfileSerializer(profile)
 
         data = user_serializer.data
-        data.update(profile_serializer.data)
+        data.update(profile_serializer.data)  # 사용자 정보와 프로필 정보를 합쳐서 반환
         return Response(data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -86,13 +86,13 @@ class UserProfileView(APIView):
 
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            serializer.save(user=request.user)  # 사용자와 관련된 프로필 생성
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 반 정보 조회 및 수정
 class GradeView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 허용
 
     def get(self, request):
         try:
@@ -116,7 +116,7 @@ class GradeView(APIView):
 
 # 학교 목록 조회
 class SchoolListView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]  # 모든 사용자에게 접근 허용
 
     def get(self, request):
         schools = School.objects.all()
