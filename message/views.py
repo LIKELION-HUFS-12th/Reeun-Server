@@ -58,7 +58,7 @@ class GetMessageAPI(APIView):
             operation_description="나와 누군가(other) 사이에 나눴던 쪽지를 모두 조회한다.",
             responses={200: openapi.Response(
                 description="조회 성공",
-                schema=GetMessageServerSerializer
+                schema=GetMessageServerSerializer(many=True)
             )})
     @method_decorator(permission_classes([IsAuthenticated]))
     def get(self, request, otherId):
