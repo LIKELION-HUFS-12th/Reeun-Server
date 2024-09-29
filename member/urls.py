@@ -15,5 +15,6 @@ urlpatterns = [
 
     path('setname/', UserSetNameView.as_view(), name='setName'), # 유저의 이름(name) 설정
     path('setenrollyear/', UserSetEnrollYearView.as_view(), name='setEnrollYear'), # 유저의 입학년도(enrollYear) 설정
-    
+    path('setschool/', UserSetSchoolView.as_view(), name='setSchool'), # 유저의 학교(school) 설정
+
 ]

@@ -49,11 +49,10 @@ User = get_user_model()
 class CustomRegisterSerializer(serializers.ModelSerializer):
     password1 = serializers.CharField(write_only=True)  # 비밀번호 입력 필드 
     password2 = serializers.CharField(write_only=True)  # 비밀번호 입력 필드(확인용)
-    nickname = serializers.CharField(max_length=100)  # 닉네임 필드
 
     class Meta:
         model = User
-        fields = ('username', 'password1', 'password2', 'nickname')
+        fields = ('username', 'password1', 'password2')
 
     def validate(self, data):
         # 비밀번호 확인
@@ -63,8 +62,7 @@ class CustomRegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User(
-            username=validated_data['username'],
-            nickname=validated_data['nickname']
+            username=validated_data['username']
         )
         user.set_password(validated_data['password1'])
         user.save()

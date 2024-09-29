@@ -10,6 +10,7 @@ from .serializers import CustomRegisterSerializer, CustomUserDetailSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from dj_rest_auth.views import LoginView
+from school.models import School
 
 User = get_user_model()
 
@@ -27,8 +28,7 @@ class UserRegisterView(APIView):
                 "refresh": str(refresh),
                 "user": {
                     "id": user.id,
-                    "username": user.username,
-                    "nickname": user.nickname,
+                    "username": user.username
                 }
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -68,16 +68,16 @@ class UserSetNameView(APIView):
     def post(self, request):
         user = request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         name = request.data.get('name')
         if not name:
-            return Response({"detail": "이름을 입력해 주세요."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "이름을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
 
         user.name = name
         user.save()
 
-        return Response({"detail": "이름이 설정되었습니다."}, status=status.HTTP_201_CREATED)
+        return Response({"message": "이름이 설정되었습니다."}, status=status.HTTP_201_CREATED)
     
 class UserSetEnrollYearView(APIView):
     permission_classes = [IsAuthenticated]
@@ -85,18 +85,40 @@ class UserSetEnrollYearView(APIView):
     def post(self, request):
         user = request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         enrollYear = request.data.get('enrollYear')
         if not enrollYear:
-            return Response({"detail": "입학년도를 입력해 주세요."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "입학년도를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         elif enrollYear <= 1900 or enrollYear >= 2025:
-            return Response({"detail": "입학년도는 1900년 이상, 2025년 이하로만 가능합니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "입학년도는 1900년 이상, 2025년 이하로만 가능합니다."}, status=status.HTTP_404_NOT_FOUND)
 
         user.enrollYear = enrollYear
         user.save()
 
-        return Response({"detail": "입학년도가 설정되었습니다."}, status=status.HTTP_201_CREATED)
+        return Response({"message": "입학년도가 설정되었습니다."}, status=status.HTTP_201_CREATED)
+    
+class UserSetSchoolView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        schoolId = request.data.get('schoolId')
+        if not schoolId:
+            return Response({"message": "학교 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            theSchool = School.objects.get(pk=schoolId)
+        except School.DoesNotExist:
+            return Response({"message": "존재하지 않는 학교 id입니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        user.school = theSchool
+        user.save()
+
+        return Response({"message": "학교 정보가 설정되었습니다."}, status=status.HTTP_201_CREATED)
 
 # 유저 정보 조회 및 생성
 class UserProfileView(APIView):
