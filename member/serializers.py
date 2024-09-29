@@ -77,7 +77,7 @@ class CustomUserDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'school', 'enrollYear']
 
 # 닉네임만 가져오는 시리얼라이저
-class GetNicknameSerializer(serializers.ModelSerializer):
+class GetNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'nickname']
+        fields = ['id', 'name']

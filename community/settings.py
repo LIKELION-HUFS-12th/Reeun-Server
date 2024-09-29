@@ -209,6 +209,7 @@ REST_FRAMEWORK = {
     ),
 }
 
+ACCOUNT_USER_MODEL_EMAIL_FIELD = None  # email 필드를 사용하지 않음
 ACCOUNT_EMAIL_VERIFICATION = 'none' # 이 부분
 ACCOUNT_EMAIL_REQUIRED = False # 이 부분
 
