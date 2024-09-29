@@ -61,6 +61,23 @@ class UserDeleteView(APIView):
             user.delete()  # 비밀번호 확인 후 사용자 삭제
             return Response({"detail": "회원탈퇴가 완료되었습니다."}, status=status.HTTP_204_NO_CONTENT)
         return Response({"detail": "비밀번호가 틀렸습니다."}, status=status.HTTP_400_BAD_REQUEST)
+    
+class UserSetNameView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        user = request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        name = request.data.get('name')
+        if not name:
+            return Response({"detail": "이름을 입력해 주세요."}, status=status.HTTP_404_NOT_FOUND)
+
+        user.name = name
+        user.save()
+
+        return Response({"detail": "이름이 설정되었습니다."}, status=status.HTTP_201_CREATED)
 
 # 유저 정보 조회 및 생성
 class UserProfileView(APIView):
