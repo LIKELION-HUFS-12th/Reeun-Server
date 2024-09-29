@@ -78,6 +78,25 @@ class UserSetNameView(APIView):
         user.save()
 
         return Response({"detail": "이름이 설정되었습니다."}, status=status.HTTP_201_CREATED)
+    
+class UserSetEnrollYearView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        user = request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        enrollYear = request.data.get('enrollYear')
+        if not enrollYear:
+            return Response({"detail": "입학년도를 입력해 주세요."}, status=status.HTTP_404_NOT_FOUND)
+        elif enrollYear <= 1900 or enrollYear >= 2025:
+            return Response({"detail": "입학년도는 1900년 이상, 2025년 이하로만 가능합니다."}, status=status.HTTP_404_NOT_FOUND)
+
+        user.enrollYear = enrollYear
+        user.save()
+
+        return Response({"detail": "입학년도가 설정되었습니다."}, status=status.HTTP_201_CREATED)
 
 # 유저 정보 조회 및 생성
 class UserProfileView(APIView):
