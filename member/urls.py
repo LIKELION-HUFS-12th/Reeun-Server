@@ -12,9 +12,8 @@ urlpatterns = [
     path('delete/', UserDeleteView.as_view(), name='delete'),  # 회원탈퇴(사용자 계정 삭제)
     path('profile/', UserProfileView.as_view(), name='user_profile'),  # 유저 정보 조회 및 생성
     path('grades/', GradeView.as_view(), name='grade_view'),  # 반 정보 조회 및 수정
-    path('schools/', SchoolListView.as_view(), name='schools'),  # 모든 학교 정보 조회
 
-    path('setName/', UserSetNameView.as_view(), name='setName'), # 유저의 이름(name) 설정
-    path('setEnrollYear/', UserSetEnrollYearView.as_view(), name='setEnrollYear'), # 유저의 입학년도(enrollYear) 설정
+    path('setname/', UserSetNameView.as_view(), name='setName'), # 유저의 이름(name) 설정
+    path('setenrollyear/', UserSetEnrollYearView.as_view(), name='setEnrollYear'), # 유저의 입학년도(enrollYear) 설정
     
 ]

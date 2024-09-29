@@ -21,6 +21,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('school/', include('school.urls')),
     path('board/', include('board.urls')),
     path('member/', include('member.urls')),
     path('classboard/', include('classboard.urls')),

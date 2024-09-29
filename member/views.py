@@ -145,12 +145,3 @@ class GradeView(APIView):
     #         serializer.save()
     #         return Response(serializer.data, status=status.HTTP_200_OK)
     #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# 학교 목록 조회
-class SchoolListView(APIView):
-    permission_classes = [AllowAny]  # 모든 사용자에게 접근 허용
-
-    # def get(self, request):
-    #     schools = UserSchool.objects.all()
-    #     serializer = SchoolSerializer(schools, many=True)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
