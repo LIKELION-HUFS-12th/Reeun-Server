@@ -3,7 +3,7 @@
 
 from django.conf import settings
 from django.db import models
-from member.models import School
+from school.models import School
 
 # 게시글 모델
 class Board(models.Model):

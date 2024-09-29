@@ -2,7 +2,6 @@
 
 from rest_framework import serializers
 from .models import Board, Comment
-from member.models import UserProfile  
 
 # 댓글 데이터 시리얼라이저
 class BoardCommentSerializer(serializers.ModelSerializer):
@@ -32,12 +31,8 @@ class BoardSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context.get('request')
         user = request.user
-        try:
-            profile = UserProfile.objects.get(user=user)
-        except UserProfile.DoesNotExist:
-            raise serializers.ValidationError({"detail": "프로필을 찾을 수 없습니다."})  
 
-        validated_data['school'] = profile.school
-        validated_data['admission_year'] = profile.admission_year
+        validated_data['school'] = user.school
+        validated_data['admission_year'] = user.enrollYear
 
         return super().create(validated_data)

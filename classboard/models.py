@@ -2,7 +2,7 @@
 
 from django.conf import settings
 from django.db import models
-from member.models import School
+from school.models import School
 
 # 학급게시판 게시글  모델
 class ClassBoard(models.Model):

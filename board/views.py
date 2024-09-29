@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Board, Comment
 from .serializers import BoardSerializer, BoardCommentSerializer
-from member.models import UserProfile
 
 # 전체 게시판 게시글 목록 조회 및 생성
 class BoardList(generics.ListCreateAPIView):
@@ -17,20 +16,13 @@ class BoardList(generics.ListCreateAPIView):
     serializer_class = BoardSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_profile(self):
-        user = self.request.user
-        try:
-            return UserProfile.objects.get(user=user)
-        except UserProfile.DoesNotExist:
-            return None
-
     def get_queryset(self):
-        profile = self.get_profile()
-        if not profile:
-            return Board.objects.none()
-
-        school = profile.school
-        admission_year = profile.admission_year
+        user = self.request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        school = user.school
+        admission_year = user.enrollYear
 
         return Board.objects.filter(
             school=school,
@@ -38,11 +30,11 @@ class BoardList(generics.ListCreateAPIView):
         )
 
     def post(self, request, *args, **kwargs):
-        profile = self.get_profile()
-        if not profile:
-            return Response({"detail": "프로필을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
-
-        admission_year = profile.admission_year
+        user = self.request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        admission_year = user.enrollYear
 
         data = request.data.copy()
         if 'school' in data:
@@ -50,7 +42,7 @@ class BoardList(generics.ListCreateAPIView):
 
         serializer = self.get_serializer(data=data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(user=request.user, school=profile.school, admission_year=admission_year)
+            serializer.save(user=request.user, school=user.school, admission_year=admission_year)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -60,17 +52,10 @@ class BoardDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     lookup_field = 'id'
 
-    def get_profile(self):
-        user = self.request.user
-        try:
-            return UserProfile.objects.get(user=user)
-        except UserProfile.DoesNotExist:
-            return None
-
     def get_queryset(self):
-        profile = self.get_profile()
-        if not profile:
-            return Board.objects.none()
+        user = self.request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         post_id = self.kwargs.get('post_id')
         if not post_id:
@@ -78,8 +63,8 @@ class BoardDetail(generics.RetrieveUpdateDestroyAPIView):
 
         return Board.objects.filter(
             id=post_id,
-            school=profile.school,
-            admission_year=profile.admission_year
+            school=user.school,
+            admission_year=user.enrollYear
         )
 
     def get_object(self):
@@ -95,36 +80,29 @@ class CommentList(generics.ListCreateAPIView):
     serializer_class = BoardCommentSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_profile(self):
-        user = self.request.user
-        try:
-            return UserProfile.objects.get(user=user)
-        except UserProfile.DoesNotExist:
-            return None
-
     def get_queryset(self):
-        profile = self.get_profile()
-        if not profile:
-            return Comment.objects.none()
+        user = self.request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         post_id = self.kwargs.get('post_id')
         if post_id:
             return Comment.objects.filter(
                 board__id=post_id,
-                board__school=profile.school,
-                board__admission_year=profile.admission_year
+                board__school=user.school,
+                board__admission_year=user.admission_year
             )
         else:
             return Comment.objects.filter(
-                board__school=profile.school,
-                board__admission_year=profile.admission_year
+                board__school=user.school,
+                board__admission_year=user.admission_year
             )
 
     def post(self, request, *args, **kwargs):
-        profile = self.get_profile()
-        if not profile:
-            return Response({"detail": "프로필을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
-
+        user = self.request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
         post_id = self.kwargs.get('post_id')
         if not post_id:
             return Response({"detail": "게시글 ID가 제공되지 않았습니다."}, status=status.HTTP_400_BAD_REQUEST)
@@ -134,7 +112,7 @@ class CommentList(generics.ListCreateAPIView):
 
         serializer = self.get_serializer(data=data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -144,21 +122,11 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     lookup_field = 'pk'
 
-    def get_profile(self):
+    def get_queryset(self):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return None
-    
-        try:
-            return UserProfile.objects.get(user=user)
-        except UserProfile.DoesNotExist:
-            return None
-
-    def get_queryset(self):
-        profile = self.get_profile()
-        if not profile:
-            return Comment.objects.none()
-
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
         post_id = self.kwargs.get('post_id')
         comment_id = self.kwargs.get('pk')
         if not post_id or not comment_id:
@@ -167,6 +135,6 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
         return Comment.objects.filter(
             board__id=post_id,
             id=comment_id,
-            board__school=profile.school,
-            board__admission_year=profile.admission_year
+            board__school=user.school,
+            board__admission_year=user.enrollYear
         )

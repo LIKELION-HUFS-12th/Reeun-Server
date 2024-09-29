@@ -1,10 +1,7 @@
 # community/member/urls.py
 
 from django.urls import path
-from .views import (
-    UserRegisterView, UserLoginView, UserLogoutView, UserDeleteView,
-    UserProfileView, GradeView, SchoolListView
-)
+from .views import *
 
 app_name = 'member'
 
@@ -16,4 +13,8 @@ urlpatterns = [
     path('profile/', UserProfileView.as_view(), name='user_profile'),  # 유저 정보 조회 및 생성
     path('grades/', GradeView.as_view(), name='grade_view'),  # 반 정보 조회 및 수정
     path('schools/', SchoolListView.as_view(), name='schools'),  # 모든 학교 정보 조회
+
+    path('setName/', UserSetNameView.as_view(), name='setName'), # 유저의 이름(name) 설정
+    path('setEnrollYear/', UserSetEnrollYearView.as_view(), name='setEnrollYear'), # 유저의 입학년도(enrollYear) 설정
+    
 ]

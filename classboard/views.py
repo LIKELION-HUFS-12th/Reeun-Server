@@ -8,24 +8,17 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import ClassBoard, Comment
 from .serializers import ClassBoardSerializer, CommentSerializer
-from member.models import UserProfile
+from member.models import CustomUser
 
 # 학급게시판 게시글 리스트와 생성 API
 class ClassBoardList(generics.ListCreateAPIView):
     serializer_class = ClassBoardSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_profile(self):
-        user = self.request.user
-        try:
-            return UserProfile.objects.get(user=user)
-        except UserProfile.DoesNotExist:
-            return None
-
     def get_queryset(self):
-        profile = self.get_profile()
-        if not profile:
-            return ClassBoard.objects.none()
+        user = self.request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         grade = self.kwargs.get('grade')
         if not grade:
@@ -33,17 +26,18 @@ class ClassBoardList(generics.ListCreateAPIView):
 
         grade_key = f'grade_{grade}'
         class_number_field = f'class_number_{grade}'
-        class_number = profile.grades.get(grade_key, {}).get(class_number_field)
+        #class_number = profile.grades.get(grade_key, {}).get(class_number_field) # 수정
+        class_number = 101
 
         if class_number is None:
             return ClassBoard.objects.none()
 
-        admission_year = profile.admission_year
+        admission_year = user.enrollYear
 
         return ClassBoard.objects.filter(
             grade=grade,
             class_number=class_number,
-            school=profile.school,
+            school=user.school,
             admission_year=admission_year
         )
 
@@ -80,18 +74,11 @@ class ClassBoardDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClassBoardSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'id'  
-
-    def get_profile(self):
-        user = self.request.user
-        try:
-            return UserProfile.objects.get(user=user)
-        except UserProfile.DoesNotExist:
-            return None
-
+    
     def get_queryset(self):
-        profile = self.get_profile()
-        if not profile:
-            return ClassBoard.objects.none()
+        user = self.request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         grade = self.kwargs.get('grade')
         post_id = self.kwargs.get('post_id')
@@ -100,18 +87,19 @@ class ClassBoardDetail(generics.RetrieveUpdateDestroyAPIView):
 
         grade_key = f'grade_{grade}'
         class_number_field = f'class_number_{grade}'
-        class_number = profile.grades.get(grade_key, {}).get(class_number_field)
+        #class_number = profile.grades.get(grade_key, {}).get(class_number_field) # 수정
+        class_number = 101
 
         if class_number is None:
             return ClassBoard.objects.none()
 
-        admission_year = profile.admission_year
+        admission_year = user.enrollYear
 
         return ClassBoard.objects.filter(
             grade=grade,
             class_number=class_number,
             id=post_id,
-            school=profile.school,
+            school=user.school,
             admission_year=admission_year
         )
 
@@ -128,17 +116,10 @@ class CommentList(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_profile(self):
-        user = self.request.user
-        try:
-            return UserProfile.objects.get(user=user)
-        except UserProfile.DoesNotExist:
-            return None
-
     def get_queryset(self):
-        profile = self.get_profile()
-        if not profile:
-            return Comment.objects.none()
+        user = self.request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         grade = self.kwargs.get('grade')
         post_id = self.kwargs.get('post_id')
@@ -147,14 +128,14 @@ class CommentList(generics.ListCreateAPIView):
             return Comment.objects.filter(
                 class_board__grade=grade,
                 class_board__id=post_id,
-                class_board__school=profile.school,
-                class_board__admission_year=profile.admission_year
+                class_board__school=user.school,
+                class_board__admission_year=user.enrollYear
             )
         else:  
             return Comment.objects.filter(
                 class_board__grade=grade,
-                class_board__school=profile.school,
-                class_board__admission_year=profile.admission_year
+                class_board__school=user.school,
+                class_board__admission_year=user.enrollYear
             )
 
     def post(self, request, *args, **kwargs):
@@ -191,20 +172,10 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     lookup_field = 'pk'  
 
-    def get_profile(self):
+    def get_queryset(self):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return None
-    
-        try:
-            return UserProfile.objects.get(user=user)
-        except UserProfile.DoesNotExist:
-            return None
-
-    def get_queryset(self):
-        profile = self.get_profile()
-        if not profile:
-            return Comment.objects.none()
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         grade = self.kwargs.get('grade')
         post_id = self.kwargs.get('post_id')
@@ -214,18 +185,19 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
 
         grade_key = f'grade_{grade}'
         class_number_field = f'class_number_{grade}'
-        class_number = profile.grades.get(grade_key, {}).get(class_number_field)
+        #class_number = profile.grades.get(grade_key, {}).get(class_number_field) # 수정
+        class_number = 101
 
         if class_number is None:
             return Comment.objects.none()
 
-        admission_year = profile.admission_year
+        admission_year = user.enrollYear
 
         return Comment.objects.filter(
             class_board__grade=grade,
             class_board__class_number=class_number,
             class_board__id=post_id,
             id=comment_id,
-            class_board__school=profile.school,
+            class_board__school=user.school,
             class_board__admission_year=admission_year
         )
