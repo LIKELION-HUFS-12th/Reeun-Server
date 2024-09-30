@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Message
-from member.serializers import GetNicknameSerializer
+from member.serializers import GetNameSerializer
 
 class SendMessageClientSerializer(serializers.ModelSerializer):
     receiverId = serializers.IntegerField()
@@ -10,16 +10,16 @@ class SendMessageClientSerializer(serializers.ModelSerializer):
         fields = ['receiverId', 'content']
 
 class SendMessageServerSerializer(serializers.ModelSerializer):
-    sender = GetNicknameSerializer()
-    receiver = GetNicknameSerializer()
+    sender = GetNameSerializer()
+    receiver = GetNameSerializer()
 
     class Meta:
         model = Message
         fields = ['sender', 'receiver', 'content']
 
 class GetMessageServerSerializer(serializers.ModelSerializer):
-    sender = GetNicknameSerializer()
-    receiver = GetNicknameSerializer()
+    sender = GetNameSerializer()
+    receiver = GetNameSerializer()
     isMyChat = serializers.SerializerMethodField()
 
     class Meta:

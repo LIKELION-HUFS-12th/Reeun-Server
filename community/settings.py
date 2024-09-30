@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'classboard',
     'message',
     'claim',
+    'school',
     # Swagger
     'drf_yasg',
     #rest framework 관련
@@ -165,7 +166,6 @@ REST_AUTH = {
     'JWT_SERIALIZER': 'dj_rest_auth.serializers.JWTSerializer',
     'JWT_SERIALIZER_WITH_EXPIRATION': 'dj_rest_auth.serializers.JWTSerializerWithExpiration',
     'JWT_TOKEN_CLAIMS_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
-	#'USER_DETAILS_SERIALIZER': 'dj_rest_auth.serializers.UserDetailsSerializer',
     'USER_DETAILS_SERIALIZER': 'member.serializers.CustomUserDetailSerializer',
 
     'PASSWORD_RESET_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetSerializer',
@@ -208,6 +208,7 @@ REST_FRAMEWORK = {
     ),
 }
 
+ACCOUNT_USER_MODEL_EMAIL_FIELD = None  # email 필드를 사용하지 않음
 ACCOUNT_EMAIL_VERIFICATION = 'none' # 이 부분
 ACCOUNT_EMAIL_REQUIRED = False # 이 부분
 
