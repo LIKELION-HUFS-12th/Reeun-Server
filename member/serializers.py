@@ -2,7 +2,8 @@
 
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import CustomUser
+from .models import Class
+from school.serializers import GetSchoolIdAndNameSerializer
 
 User = get_user_model()
 
@@ -79,3 +80,39 @@ class GetNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'name']
+
+class UserSetNameClientSerializer(serializers.Serializer):
+    name = serializers.CharField()
+
+class UserSetNameServerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'name']
+
+class UserSetEnrollYearClientSerializer(serializers.Serializer):
+    enrollYear = serializers.IntegerField()
+
+class UserSetEnrollYearServerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'enrollYear']
+
+class UserSetSchoolClientSerializer(serializers.Serializer):
+    schoolId = serializers.IntegerField()
+
+class UserSetSchoolServerSerializer(serializers.ModelSerializer):
+    school = GetSchoolIdAndNameSerializer()
+
+    class Meta:
+        model = User
+        fields = ['id', 'school']
+
+class UserSetClassClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Class
+        fields = ['grade', 'order']
+
+class UserSetClassServerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Class
+        fields = ['user', 'grade', 'order', 'isAnonymous']

@@ -3,13 +3,20 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from .serializers import CustomRegisterSerializer, CustomUserDetailSerializer
+from django.utils.decorators import method_decorator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+from rest_framework.decorators import permission_classes
+from .serializers import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from dj_rest_auth.views import LoginView
+from .models import Class
 from school.models import School
 
 User = get_user_model()
@@ -63,8 +70,18 @@ class UserDeleteView(APIView):
         return Response({"detail": "비밀번호가 틀렸습니다."}, status=status.HTTP_400_BAD_REQUEST)
     
 class UserSetNameView(APIView):
-    permission_classes = [IsAuthenticated]
-    
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+            tags=['유저 정보'],
+            operation_summary="유저의 이름 등록",
+            operation_description="현재 접속한 유저의 이름을 등록한다.",
+            request_body=UserSetNameClientSerializer,
+            responses={201: openapi.Response(
+                description="등록 성공",
+                schema=UserSetNameServerSerializer()
+            )})
+    @method_decorator(permission_classes([IsAuthenticated]))
     def post(self, request):
         user = request.user
         if isinstance(user, AnonymousUser):
@@ -80,8 +97,18 @@ class UserSetNameView(APIView):
         return Response({"message": "이름이 설정되었습니다."}, status=status.HTTP_201_CREATED)
     
 class UserSetEnrollYearView(APIView):
-    permission_classes = [IsAuthenticated]
-    
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+            tags=['유저 정보'],
+            operation_summary="유저의 입학년도 등록",
+            operation_description="현재 접속한 유저의 입학년도를 등록한다.",
+            request_body=UserSetEnrollYearClientSerializer,
+            responses={201: openapi.Response(
+                description="등록 성공",
+                schema=UserSetEnrollYearServerSerializer()
+            )})
+    @method_decorator(permission_classes([IsAuthenticated]))
     def post(self, request):
         user = request.user
         if isinstance(user, AnonymousUser):
@@ -99,8 +126,18 @@ class UserSetEnrollYearView(APIView):
         return Response({"message": "입학년도가 설정되었습니다."}, status=status.HTTP_201_CREATED)
     
 class UserSetSchoolView(APIView):
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
+    @swagger_auto_schema(
+            tags=['유저 정보'],
+            operation_summary="유저의 학교 등록",
+            operation_description="현재 접속한 유저의 학교 정보를 등록한다.",
+            request_body=UserSetSchoolClientSerializer,
+            responses={201: openapi.Response(
+                description="등록 성공",
+                schema=UserSetSchoolServerSerializer()
+            )})
+    @method_decorator(permission_classes([IsAuthenticated]))
     def post(self, request):
         user = request.user
         if isinstance(user, AnonymousUser):
@@ -119,6 +156,50 @@ class UserSetSchoolView(APIView):
         user.save()
 
         return Response({"message": "학교 정보가 설정되었습니다."}, status=status.HTTP_201_CREATED)
+        
+class UserSetClassView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+            tags=['유저 정보'],
+            operation_summary="유저의 반 등록",
+            operation_description="현재 접속한 유저의 반 정보를 등록한다.",
+            request_body=UserSetClassClientSerializer,
+            responses={201: openapi.Response(
+                description="등록 성공",
+                schema=UserSetClassServerSerializer()
+            )})
+    @method_decorator(permission_classes([IsAuthenticated]))
+    def post(self, request):
+        user = request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        school = user.school
+
+        grade = request.data.get('grade')
+        if not grade:
+            return Response({"message": "학년을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+        elif grade < 1 or grade > 6:
+            return Response({"message": "학년은 1부터 6까지만 가능합니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        order = request.data.get('order')
+        if not order:
+            return Response({"message": "반을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+        elif order < 1 or order > 10:
+            return Response({"message": "반은 1부터 10까지만 가능합니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        newClass = Class.objects.create(
+            school = school,
+            user = user,
+            grade = grade,
+            order = order,
+            isAnonymous = False
+        )
+        returnSerializer = UserSetClassServerSerializer(newClass)
+        return Response(returnSerializer.data, status=status.HTTP_201_CREATED)
+
+# 학교등록, 반등록 하고 스웨거 설정 후 API명세 ㄱㄱ
+# 그리고 다 하고 api 다 되는지 동작하고 board 수정 후 classboard 합쳐라
 
 # 유저 정보 조회 및 생성
 class UserProfileView(APIView):
