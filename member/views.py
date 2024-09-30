@@ -193,58 +193,27 @@ class UserSetClassView(APIView):
             user = user,
             grade = grade,
             order = order,
-            isAnonymous = False
+            isAnonymous = True
         )
         returnSerializer = UserSetClassServerSerializer(newClass)
         return Response(returnSerializer.data, status=status.HTTP_201_CREATED)
+    
+class UserGetInfoView(APIView):
+    authentication_classes = [JWTAuthentication]
 
-# 학교등록, 반등록 하고 스웨거 설정 후 API명세 ㄱㄱ
-# 그리고 다 하고 api 다 되는지 동작하고 board 수정 후 classboard 합쳐라
-
-# 유저 정보 조회 및 생성
-class UserProfileView(APIView):
-    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 허용
-
+    @swagger_auto_schema(
+            tags=['유저 정보'],
+            operation_summary="유저의 정보 조회",
+            operation_description="현재 접속한 유저의 정보(유저id, 아이디, 이름, 입학년도, 학교, 반)를 출력한다.",
+            responses={201: openapi.Response(
+                description="등록 성공",
+                schema=UserGetInfoSerializer
+            )})
+    @method_decorator(permission_classes([IsAuthenticated]))
     def get(self, request):
-        user = self.request.user
+        user = request.user
         if isinstance(user, AnonymousUser):
             return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
-        user_serializer = CustomUserDetailSerializer(user)
-
-        data = user_serializer.data
-        return Response(data, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        # if UserProfile.objects.filter(user=request.user).exists():
-        #     return Response({"detail": "Profile already exists."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # serializer = UserProfileSerializer(data=request.data)
-        # if serializer.is_valid():
-        #     serializer.save(user=request.user)  # 사용자와 관련된 프로필 생성
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response("serializer.errors", status=status.HTTP_400_BAD_REQUEST)
-
-# 반 정보 조회 및 수정
-class GradeView(APIView):
-    permission_classes = [IsAuthenticated]  # 인증된 사용자만 접근 허용
-
-    # def get(self, request):
-    #     try:
-    #         profile = UserProfile.objects.get(user=request.user)
-    #         serializer = GradeSerializer(profile)
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-    #     except UserProfile.DoesNotExist:
-    #         return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    # def put(self, request):
-    #     try:
-    #         profile = UserProfile.objects.get(user=request.user)
-    #     except UserProfile.DoesNotExist:
-    #         return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
-
-    #     serializer = GradeSerializer(profile, data=request.data, partial=True)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserGetInfoSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
