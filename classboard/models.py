@@ -11,8 +11,8 @@ class ClassBoard(models.Model):
     body = models.TextField()  # 내용
     created_at = models.DateTimeField(auto_now_add=True)  # 생성 시간
     school = models.ForeignKey(School, on_delete=models.CASCADE, default=1)  # 학교
-    class_number = models.IntegerField(default=0)  # 수업 번호
     grade = models.IntegerField(default=0)  # 학년
+    order = models.IntegerField(default=0)  # 수업 번호
     admission_year = models.IntegerField(default=0)  # 입학 연도
 
     def __str__(self):

@@ -6,7 +6,7 @@ from .models import ClassBoard, Comment
 # 학급 게시판 모델 관리용
 class ClassBoardAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)  # 'created_at' 필드를 읽기 전용으로 설정
-    list_display = ('id', 'user', 'title', 'created_at', 'school', 'class_number', 'grade')  # 필드 추가
+    list_display = ('id', 'user', 'title', 'created_at', 'school', 'grade', 'order')  # 필드 추가
 
 # 학급 댓글 모델 관리용
 class CommentAdmin(admin.ModelAdmin):
