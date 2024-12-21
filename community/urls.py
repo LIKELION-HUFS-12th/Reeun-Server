@@ -10,7 +10,7 @@ schema_view = get_schema_view(
    openapi.Info(
       title="Reeun APIs",
       default_version='v1',
-      description="Test description",
+      description="응답으로 날아오는 code, message는 무시하고 'data' 필드 내부만 보여줍니다",
       terms_of_service="<https://www.google.com/policies/terms/>",
       contact=openapi.Contact(email="contact@snippets.local"),
       license=openapi.License(name="BSD License"),
