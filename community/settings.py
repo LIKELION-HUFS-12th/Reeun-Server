@@ -206,6 +206,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
+    'DEFAULT_RENDERER_CLASSES': [
+        'community.renderers.CustomRenderer',
+    ]
 }
 
 ACCOUNT_USER_MODEL_EMAIL_FIELD = None  # email 필드를 사용하지 않음
