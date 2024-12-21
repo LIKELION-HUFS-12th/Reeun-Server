@@ -53,29 +53,36 @@ class ClassBoardList(APIView):
     def post(self, request):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         elif user.enrollYear is None:
-            return Response({"message": "입학년도가 없는 유저는 글을 작성할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "입학년도가 없는 유저는 글을 작성할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
         
         grade = request.data.get('grade')
         if not grade:
-            return Response({"message": "학년을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "학년을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         order = request.data.get('order')
         if not order:
-            return Response({"message": "반을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "반을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         admission_year = request.data.get('admission_year')
         if not admission_year:
-            return Response({"message": "입학년도를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "입학년도를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         title = request.data.get('title')
         if not title:
-            return Response({"message": "제목을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "제목을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         body = request.data.get('body')
         if not body:
-            return Response({"message": "내용을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "내용을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
 
         newClassBoard = ClassBoard.objects.create(
             user = user,
@@ -102,12 +109,14 @@ class GetClassBoardDetail(APIView):
     def get(self, request, classBoardId):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         try:
             theClassBoard = ClassBoard.objects.get(pk=classBoardId)
         except ClassBoard.DoesNotExist:
-            return Response({"message": "존재하지 않는 게시글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "존재하지 않는 게시글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
         
         serializer = ClassBoardSerializer(theClassBoard)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -125,24 +134,29 @@ class EditClassBoardDetail(APIView):
     def put(self, request):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         classBoardId = request.data.get('classBoardId')
         if not classBoardId:
-            return Response({"message": "게시글 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "게시글 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         title = request.data.get('title')
         if not title:
-            return Response({"message": "제목을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "제목을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         body = request.data.get('body')
         if not body:
-            return Response({"message": "내용을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "내용을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             theClassBoard = ClassBoard.objects.get(pk=classBoardId)
         except ClassBoard.DoesNotExist:
-            return Response({"message": "존재하지 않는 게시글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "존재하지 않는 게시글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
         
         theClassBoard.title = title
         theClassBoard.body = body
@@ -163,15 +177,18 @@ class DeleteClassBoardDetail(APIView):
     def delete(self, request):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         classBoardId = request.data.get('classBoardId')
         if not classBoardId:
-            return Response({"message": "게시글 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "게시글 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         try:
             theClassBoard = ClassBoard.objects.get(pk=classBoardId)
         except ClassBoard.DoesNotExist:
-            return Response({"message": "존재하지 않는 게시글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "존재하지 않는 게시글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
         
         theClassBoard.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -192,7 +209,8 @@ class GetCommentAPI(APIView):
         try:
             thePost = ClassBoard.objects.get(pk=classBoardId)
         except ClassBoard.DoesNotExist:
-            return Response({"message": "존재하지 않는 게시글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "존재하지 않는 게시글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
         
         commentList = thePost.comments.all()
         serializer = CommentSerializer(commentList, many=True)
@@ -215,22 +233,27 @@ class PostCommentAPI(APIView):
     def post(self, request, *args, **kwargs):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         elif user.enrollYear is None:
-            return Response({"message": "입학년도가 없는 유저는 댓글을 작성할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "입학년도가 없는 유저는 댓글을 작성할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
         
         classBoardId = request.data.get('classBoardId')
         if not classBoardId:
-            return Response({"message": "게시글 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "게시글 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             thePost = ClassBoard.objects.get(pk=classBoardId)
         except ClassBoard.DoesNotExist:
-            return Response({"message": "존재하지 않는 게시글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "존재하지 않는 게시글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
         
         comment = request.data.get('comment')
         if not comment:
-            return Response({"message": "댓글 내용을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "댓글 내용을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         newComment = Comment.objects.create(
             user = user,
@@ -256,7 +279,8 @@ class CommentDetailAPI(APIView):
         try:
             theComment = Comment.objects.get(pk=commentId)
         except Comment.DoesNotExist:
-            return Response({"message": "존재하지 않는 댓글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "존재하지 않는 댓글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
         
         serializer = CommentSerializer(theComment)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -277,22 +301,27 @@ class EditCommentAPI(APIView):
     def put(self, request):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         elif user.enrollYear is None:
-            return Response({"message": "입학년도가 없는 유저는 댓글을 수정할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "입학년도가 없는 유저는 댓글을 수정할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
         
         commentId = request.data.get('commentId')
         if not commentId:
-            return Response({"message": "댓글 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "댓글 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             theComment = Comment.objects.get(pk=commentId)
         except Comment.DoesNotExist:
-            return Response({"message": "존재하지 않는 댓글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "존재하지 않는 댓글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
         
         comment = request.data.get('comment')
         if not comment:
-            return Response({"message": "댓글 내용을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "댓글 내용을 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         theComment.comment = comment
         theComment.save()
@@ -315,12 +344,14 @@ class DeleteCommentAPI(APIView):
     def delete(self, request):
         commentId = request.data.get('commentId')
         if not commentId:
-            return Response({"message": "댓글 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "댓글 id를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
             theComment = Comment.objects.get(pk=commentId)
         except Comment.DoesNotExist:
-            return Response({"message": "존재하지 않는 댓글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "존재하지 않는 댓글 id입니다."}, status=status.HTTP_404_NOT_FOUND)
         
         theComment.delete()
         return Response({"message": "삭제가 완료되었습니다."}, status=status.HTTP_204_NO_CONTENT)

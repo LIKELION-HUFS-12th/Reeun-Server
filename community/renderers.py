@@ -6,7 +6,7 @@ class CustomRenderer(JSONRenderer):
         response_data = renderer_context.get('response')
 
         response = {
-            'code': response_data.status_code,
+            'statusCode': response_data.status_code,
             'message': response_data.status_text,
             'data': data
         }

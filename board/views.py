@@ -32,7 +32,8 @@ class BoardList(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         school = user.school
         admission_year = user.enrollYear
@@ -54,11 +55,13 @@ class BoardList(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         admission_year = user.enrollYear
         if admission_year is None:
-            return Response({"message": "입학년도가 없는 유저는 글을 작성할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "입학년도가 없는 유저는 글을 작성할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         data = request.data.copy()
         if 'school' in data:
@@ -68,7 +71,8 @@ class BoardList(generics.ListCreateAPIView):
         if serializer.is_valid():
             serializer.save(user=request.user, school=user.school, admission_year=admission_year)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"statusCode": 400,
+                         "message": "잘못된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 # 전체 게시판 특정 게시글 조회, 수정, 삭제
 class BoardDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -79,7 +83,8 @@ class BoardDetail(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         post_id = self.kwargs.get('post_id')
         if not post_id:
@@ -96,7 +101,8 @@ class BoardDetail(generics.RetrieveUpdateDestroyAPIView):
         try:
             return queryset.get(id=post_id)
         except Board.DoesNotExist:
-            raise Http404("게시글을 찾을 수 없습니다.")
+            return Response({"statusCode": 404,
+                             "message": "게시글을 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
     @swagger_auto_schema(
         tags=['학교 커뮤니티'],
@@ -139,7 +145,8 @@ class BoardDetail(generics.RetrieveUpdateDestroyAPIView):
         operation_description="사용X"
         )
     def patch(self, request, *args, **kwargs):
-        return Response({"detail": "PATCH 메서드는 지원되지 않습니다."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response({"statusCode": 405,
+                         "message": "PATCH 메서드는 지원되지 않습니다."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 # 전체 게시판 댓글 목록 조회 및 생성
 class CommentList(generics.ListCreateAPIView):
@@ -157,11 +164,13 @@ class CommentList(generics.ListCreateAPIView):
     def get(self, request, *args, **kwargs):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         admission_year = user.enrollYear
         if admission_year is None:
-            return Response({"message": "입학년도가 없는 유저는 댓글을 조회할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "입학년도가 없는 유저는 댓글을 조회할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         post_id = self.kwargs.get('post_id')
         if post_id:
@@ -192,11 +201,13 @@ class CommentList(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         post_id = self.kwargs.get('post_id')
         if not post_id:
-            return Response({"detail": "게시글 ID가 제공되지 않았습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "게시글 ID가 제공되지 않았습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         data = request.data.copy()
         data['board'] = post_id
@@ -205,7 +216,8 @@ class CommentList(generics.ListCreateAPIView):
         if serializer.is_valid():
             serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "잘못된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 # 전체 게시판 특정 댓글 조회, 수정, 삭제
 class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -216,7 +228,8 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         post_id = self.kwargs.get('post_id')
         comment_id = self.kwargs.get('pk')
