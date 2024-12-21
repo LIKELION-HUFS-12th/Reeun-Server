@@ -35,6 +35,12 @@ class CustomUserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username']
+    
+# 회원가입 응답 시리얼라이저
+class RegisterResponseSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+    user = CustomUserDetailSerializer()
 
 # 닉네임만 가져오는 시리얼라이저
 class GetNameSerializer(serializers.ModelSerializer):
