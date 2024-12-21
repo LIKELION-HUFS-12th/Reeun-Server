@@ -25,6 +25,15 @@ User = get_user_model()
 class UserRegisterView(APIView):
     permission_classes = [AllowAny]  # 모든 사용자에게 접근 허용
 
+    @swagger_auto_schema(
+        tags=['member'],
+        operation_summary="회원가입",
+        operation_description="회원가입 한다.",
+        request_body=CustomRegisterSerializer,
+        responses={201: openapi.Response(
+            description="회원가입 성공",
+            schema=RegisterResponseSerializer()
+        )})
     def post(self, request, *args, **kwargs):
         serializer = CustomRegisterSerializer(data=request.data)
         if serializer.is_valid():

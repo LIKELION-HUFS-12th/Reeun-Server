@@ -3,6 +3,7 @@
 from django.contrib.auth.models import AnonymousUser
 from django.http import Http404 
 from django.shortcuts import render
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -73,6 +74,13 @@ class ClassBoardList(APIView):
         if not admission_year:
             return Response({"statusCode": 400,
                              "message": "입학년도를 입력해 주세요."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        latestPost = ClassBoard.objects.filter(user=user).order_by('-created_at').first()
+        if latestPost:
+            now = timezone.now()
+            if (now - latestPost.created_at).total_seconds() < 300:
+                return Response({"statusCode": 400,
+                                 "message": "게시글 작성 후 5분이 지나야 새로 작성 가능합니다."}, status=status.HTTP_400_BAD_REQUEST)
         
         title = request.data.get('title')
         if not title:
