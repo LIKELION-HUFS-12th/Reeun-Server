@@ -34,10 +34,12 @@ class SendMessageAPI(APIView):
         try:
             receiver = CustomUser.objects.get(pk=receiverId)
         except CustomUser.DoesNotExist:
-            return Response({"message": "존재하지 않는 유저입니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 404,
+                             "message": "존재하지 않는 유저입니다."}, status=status.HTTP_404_NOT_FOUND)
 
         if sender == receiver:
-            return Response({"message": "자신에게는 쪽지를 보낼 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "자신에게는 쪽지를 보낼 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         newMessage = Message.objects.create(
             sender=sender,
@@ -67,10 +69,12 @@ class GetMessageAPI(APIView):
         try:
             other = CustomUser.objects.get(pk=otherId)
         except CustomUser.DoesNotExist:
-            return Response({"message": "존재하지 않는 유저입니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "존재하지 않는 유저입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         if user == other:
-            return Response({"message": "자신과의 쪽지는 불러올 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "자신과의 쪽지는 불러올 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         messageList = Message.objects.filter(Q(sender=user, receiver=other) | Q(sender=other, receiver=user))
         serializer = GetMessageServerSerializer(messageList, many=True, context={'user': user})

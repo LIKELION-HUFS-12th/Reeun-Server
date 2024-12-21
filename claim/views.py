@@ -40,14 +40,17 @@ class MakeClaimAPI(APIView):
         try:
             claimedUser = CustomUser.objects.get(pk=objectId)
         except CustomUser.DoesNotExist:
-            return Response({"message": "존재하지 않는 유저입니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "존재하지 않는 유저입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         if claimingUser == claimedUser:
-            return Response({"message": "자기 자신은 신고할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "자기 자신은 신고할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         isExist = Claim.objects.filter(claimingUser=claimingUser, claimedUser=claimedUser).exists()
         if isExist:
-            return Response({"message": "이미 신고한 유저입니다."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"statusCode": 400,
+                             "message": "이미 신고한 유저입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         newClaim = Claim.objects.create(
             claimingUser = claimingUser,
