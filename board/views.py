@@ -129,7 +129,7 @@ class BoardDetail(generics.RetrieveUpdateDestroyAPIView):
         operation_summary="학교 커뮤니티 특정 게시글 수정",
         operation_description="학교 커뮤니티에 작성된 특정 게시글을 수정한다.",
         request_body=PostBoardListSerializer,
-        responses={200: openapi.Response(
+        responses={201: openapi.Response(
             description="조회 성공",
             schema=BoardSerializer()
         )})
