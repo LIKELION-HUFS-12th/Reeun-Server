@@ -16,4 +16,9 @@ urlpatterns = [
     path('setschool/', UserSetSchoolView.as_view(), name='setSchool'), # 유저의 학교(school) 설정
     path('setclass/', UserSetClassView.as_view(), name='setClass'), # 유저의 반(Class) 설정
     path('getinfo/', UserGetInfoView.as_view(), name='getInfo'), # 유저 정보 조회
+
+    path('openNicknameToSchool/', OpenNicknameSchoolView.as_view(), name='openNicknameToSchool'), # 자신의 닉네임을 학교에게 공개
+    path('openNicknameToClass/', OpenNicknameClassView.as_view(), name='openNicknameToClass'), # 자신의 닉네임을 학급에 공개
+    path('getschoolmembers/', UserGetSchoolMemberView.as_view(), name='getSchoolMember'), # 특정 학교의 유저 중 이름공개해둔 멤버 모두 조회
+    path('getclassmembers/<int:grade>/', UserGetClassMemberView.as_view(), name='getClassMember'), # 특정 학교의 학년 학급 멤버 이름 공개된 멤버 모두 조회
 ]

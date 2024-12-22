@@ -91,3 +91,6 @@ class UserGetInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'name', 'enrollYear', 'school', 'classList']
+
+class UserOpenNicknameClassClientSerializer(serializers.Serializer):
+    grade = serializers.IntegerField()
