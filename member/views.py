@@ -212,6 +212,9 @@ class UserSetClassView(APIView):
             return Response({"statusCode": 400,
                              "message": "반은 1부터 10까지만 가능합니다."}, status=status.HTTP_400_BAD_REQUEST)
         
+        theClass = Class.objects.get(user=user, grade=grade)
+        theClass.delete()
+        
         newClass = Class.objects.create(
             school = school,
             user = user,
@@ -242,3 +245,141 @@ class UserGetInfoView(APIView):
         
         serializer = UserGetInfoSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class OpenNicknameSchoolView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+        tags=['유저 목록 조회 관련'],
+        operation_summary="자신의 이름을 학교에게 공개",
+        operation_description="현재 접속한 유저의 이름을 앞으로 학교 멤버들에게 공개한다. (공개 시 비공개 전환 불가능)",
+        responses={201: openapi.Response(
+            description="공개 성공",
+        )})
+    @method_decorator(permission_classes([IsAuthenticated]))
+    def post(self, request):
+        user = request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if user.school is None:
+            return Response({"statusCode": 404,
+                              "message": "학교 정보가 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+
+        if user.isAnonymousSchool == False:
+            return Response({"statusCode": 400,
+                              "message": "이미 이름이 학교에 공개가 되어 있습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        user.isAnonymousSchool = False
+        user.save()
+        return Response({"message": "앞으로 이름이 자신의 학교 멤버들에게 공개됩니다."}, status=status.HTTP_201_CREATED)
+    
+
+class OpenNicknameClassView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+        tags=['유저 목록 조회 관련'],
+        operation_summary="자신의 이름을 학급에게 공개",
+        operation_description="현재 접속한 유저의 이름을 앞으로 자신의 특정 학년(grade)의 학급 멤버들에게 공개한다. (공개 시 비공개 전환 불가능)",
+        request_body=UserOpenNicknameClassClientSerializer(),
+        responses={201: openapi.Response(
+            description="공개 성공",
+        )})
+    @method_decorator(permission_classes([IsAuthenticated]))
+    def post(self, request):
+        user = request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if user.school is None:
+            return Response({"statusCode": 404,
+                              "message": "학교 정보가 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        grade = request.data.get('grade')
+        if not grade:
+            return Response({"statusCode": 400,
+                              "message": "'grade' 값이 필요합니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        theClass = Class.objects.get(user=user, grade=grade)
+        if theClass.isAnonymous == False:
+            return Response({"statusCode": 400,
+                              "message": "이미 이름이 학급에 공개가 되어 있습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        theClass.isAnonymous = False
+        theClass.save()
+        return Response({"message": "앞으로 이름이 자신의 학급 멤버들에게 공개됩니다."}, status=status.HTTP_201_CREATED)
+
+
+
+class UserGetSchoolMemberView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+        tags=['유저 목록 조회 관련'],
+        operation_summary="같은 학교 유저 목록 조회",
+        operation_description="현재 접속한 유저의 학교와 동일한 학교의 유저 중, 정보 공개를 해 둔 사람들을 모두 가져온다.",
+        responses={200: openapi.Response(
+            description="조회 성공",
+            schema=GetNameSerializer(many=True)
+        )})
+    @method_decorator(permission_classes([IsAuthenticated]))
+    def get(self,request):
+        user = request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if user.school is None:
+            return Response({"statusCode": 404,
+                              "message": "학교 정보가 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        school = user.school
+
+        if user.isAnonymousSchool == True:
+            return Response({"statusCode": 400,
+                              "message": "자신의 이름을 먼저 공개해야 다른 유저의 목록을 조회할 수 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
+        usersInSchool = User.objects.filter(school=school, isAnonymousSchool=False)
+        serializer = GetNameSerializer(usersInSchool, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class UserGetClassMemberView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+        tags=['유저 목록 조회 관련'],
+        operation_summary="같은 학교의 특정 학년의 학급 유저 목록 조회",
+        operation_description="현재 접속한 유저의 학교와 동일한 학교의 특정 학년(grade)의 특정 학급(oredr)에서, 정보 공개를 해 둔 사람들을 모두 가져온다.",
+        responses={200: openapi.Response(
+            description="조회 성공",
+            schema=GetNameSerializer(many=True)
+        )})
+    @method_decorator(permission_classes([IsAuthenticated]))
+    def get(self,request, grade):
+        user = request.user
+        if isinstance(user, AnonymousUser):
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if user.school is None:
+            return Response({"statusCode": 404,
+                              "message": "학교 정보가 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        school = user.school
+
+        myClass = Class.objects.get(user=user, grade=grade)
+        if myClass is None:
+            return Response({"statusCode": 404,
+                              "message": "학급 정보가 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+        if myClass.isAnonymous == True:
+            return Response({"statusCode": 400,
+                              "message": "자신의 이름을 먼저 공개해야 다른 유저의 목록을 조회할 수 있습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        userClass = Class.objects.filter(school=myClass.school, grade=myClass.grade, order=myClass.order, isAnonymous=False)
+        usersInClass = []
+        for cls in userClass:
+            usersInClass.append(cls.user)
+
+        serializer = GetNameSerializer(usersInClass, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

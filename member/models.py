@@ -21,6 +21,8 @@ class CustomUser(AbstractUser):
     enrollYear = models.CharField(null=True, blank=True, max_length=4)
     school = models.ForeignKey(School, null=True, on_delete=models.CASCADE)
 
+    isAnonymousSchool = models.BooleanField(default=True)
+
 # 유저가 소속된 반
 class Class(models.Model):
     school = models.ForeignKey(School, null=False, on_delete=models.CASCADE)
