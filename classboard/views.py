@@ -33,7 +33,8 @@ class GetClassBoardAPI(APIView):
     def get(self, request, admission_year, grade, order):
         user = self.request.user
         if isinstance(user, AnonymousUser):
-            return Response({"detail": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"statusCode": 404,
+                             "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         
         classBoardList = ClassBoard.objects.filter(grade=grade, order=order, admission_year=admission_year)
         serializer = ClassBoardSerializer(classBoardList, many=True)

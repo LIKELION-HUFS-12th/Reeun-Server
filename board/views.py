@@ -225,8 +225,9 @@ class CommentList(generics.ListCreateAPIView):
         if serializer.is_valid():
             serializer.save(user=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response({"statusCode": 400,
-                             "message": "잘못된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({"statusCode": 400,
+                            "message": "잘못된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 # 전체 게시판 특정 댓글 조회, 수정, 삭제
 class CommentDetail(generics.RetrieveUpdateDestroyAPIView):

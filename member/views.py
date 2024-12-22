@@ -47,7 +47,8 @@ class UserRegisterView(APIView):
                     "username": user.username
                 }
             }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"statusCode": 400,
+                          "message": "잘못된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
 # 로그인
 class UserLoginView(LoginView):
