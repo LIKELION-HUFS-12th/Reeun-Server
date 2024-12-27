@@ -12,19 +12,21 @@ class SendMessageClientSerializer(serializers.ModelSerializer):
 class SendMessageServerSerializer(serializers.ModelSerializer):
     sender = GetNameSerializer()
     receiver = GetNameSerializer()
+    createDate = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S')
 
     class Meta:
         model = Message
-        fields = ['sender', 'receiver', 'content']
+        fields = ['sender', 'receiver', 'content', 'createDate']
 
 class GetMessageServerSerializer(serializers.ModelSerializer):
     sender = GetNameSerializer()
     receiver = GetNameSerializer()
+    createDate = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S')
     isMyChat = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ['sender', 'receiver', 'content', 'isMyChat']
+        fields = ['sender', 'receiver', 'content', 'createDate', 'isMyChat']
 
     def get_isMyChat(self, obj):
         currentUser = self.context['user']
