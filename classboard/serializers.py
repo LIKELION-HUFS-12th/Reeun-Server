@@ -3,6 +3,7 @@
 from rest_framework import serializers
 from .models import ClassBoard, Comment
 from member.models import CustomUser
+from member.serializers import GetNameSerializer
 
 class DeleteClassBoardClientSerializer(serializers.Serializer):
     classBoardId = serializers.IntegerField()
@@ -38,7 +39,7 @@ class DeleteCommentClientSerializer(serializers.Serializer):
 
 # 학급 게시판 댓글 시리얼라이저
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.username')  # 사용자 이름 읽기 전용
+    user = GetNameSerializer()  # 사용자 id 및 이름 표시
     created_at = serializers.DateTimeField(format='%Y-%m-%d', read_only=True)  # 생성일 읽기 전용
     class_board = serializers.PrimaryKeyRelatedField(queryset=ClassBoard.objects.all(), write_only=True)  # 수업 게시판 ID
 
@@ -49,7 +50,7 @@ class CommentSerializer(serializers.ModelSerializer):
 # 학급 게시판 게시글 시리얼라이저
 class ClassBoardSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)  # 관련 댓글
-    user = serializers.ReadOnlyField(source='user.username')  # 사용자 이름 읽기 전용
+    user = GetNameSerializer()  # 사용자 id 및 이름 표시
     created_at = serializers.DateTimeField(format='%Y-%m-%d', read_only=True)  # 생성일 읽기 전용
     school_name = serializers.SerializerMethodField()  # 학교 이름
     grade = serializers.SerializerMethodField()  # 학년
