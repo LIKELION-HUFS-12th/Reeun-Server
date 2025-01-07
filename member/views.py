@@ -213,8 +213,9 @@ class UserSetClassView(APIView):
             return Response({"statusCode": 400,
                              "message": "반은 1부터 10까지만 가능합니다."}, status=status.HTTP_400_BAD_REQUEST)
         
-        theClass = Class.objects.get(user=user, grade=grade)
-        theClass.delete()
+        theClass = Class.objects.filter(user=user, grade=grade).first()
+        if theClass is not None:
+            theClass.delete()
         
         newClass = Class.objects.create(
             school = school,
