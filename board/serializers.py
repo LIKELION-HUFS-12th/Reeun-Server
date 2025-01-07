@@ -2,6 +2,7 @@
 
 from rest_framework import serializers
 from .models import Board, Comment
+from member.serializers import GetNameSerializer
 
 class PostBoardListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,7 +16,7 @@ class PostCommentListSerializer(serializers.ModelSerializer):
 
 # 댓글 데이터 시리얼라이저
 class BoardCommentSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.username')  # 사용자 이름 표시
+    user = GetNameSerializer()  # 사용자 id 및 이름 표시
     created_at = serializers.DateTimeField(format='%Y-%m-%d', read_only=True)  # 생성일 포맷
     board = serializers.PrimaryKeyRelatedField(queryset=Board.objects.all(), write_only=True, required=False)  # 게시글 참조
 
@@ -31,7 +32,7 @@ class BoardCommentSerializer(serializers.ModelSerializer):
 # 게시글 데이터 시리얼라이저
 class BoardSerializer(serializers.ModelSerializer):
     comments = BoardCommentSerializer(many=True, read_only=True)  # 댓글 리스트
-    user = serializers.ReadOnlyField(source='user.username')  # 사용자 이름 표시
+    user = GetNameSerializer()  # 사용자 id 및 이름 표시
     created_at = serializers.DateTimeField(format='%Y-%m-%d', read_only=True)  # 생성일 포맷
     school_name = serializers.SerializerMethodField()  # 학교 이름 표시
 
