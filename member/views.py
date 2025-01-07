@@ -196,6 +196,9 @@ class UserSetClassView(APIView):
             return Response({"statusCode": 404,
                              "message": "유저를 찾을 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
         school = user.school
+        if school is None:
+            return Response({"statusCode": 404,
+                             "message": "학교에 소속되지 않은 유저는 반을 등록할 수 없습니다."}, status=status.HTTP_404_NOT_FOUND)
 
         grade = request.data.get('grade')
         if not grade:
