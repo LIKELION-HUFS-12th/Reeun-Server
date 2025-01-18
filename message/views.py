@@ -114,3 +114,32 @@ class GetMessageAPI(APIView):
         serializer = GetMessageServerSerializer(messageList, many=True, context={'user': user})
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class ExitMessageAPI(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+            tags=['쪽지'],
+            operation_summary="쪽지 나가기",
+            operation_description="나와 누군가(other) 사이의 쪽지 방에서 나가고, 그 사람과 나눴던 쪽지를 모두 삭제한다",
+            request_body=ExitMessageClientSerializer(),
+            responses={201: openapi.Response(
+                description="나가기 성공",
+            )})
+    @method_decorator(permission_classes([IsAuthenticated]))
+    def post(self, request):
+        user = request.user
+
+        otherId = request.data.get('otherId')
+        if not otherId:
+            return Response({"statusCode": 400,
+                             "message": "otherId가 제공되지 않았습니다."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            other = CustomUser.objects.get(pk=otherId)
+        except CustomUser.DoesNotExist:
+            return Response({"statusCode": 400,
+                             "message": "존재하지 않는 유저입니다."}, status=status.HTTP_400_BAD_REQUEST)
+    
+        Message.objects.filter(Q(sender=user, receiver=other) | Q(sender=other, receiver=user)).delete()
+        return Response({"message": "성공하였습니다."}, status=status.HTTP_201_CREATED)
