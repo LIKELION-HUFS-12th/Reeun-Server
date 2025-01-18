@@ -31,3 +31,6 @@ class GetMessageServerSerializer(serializers.ModelSerializer):
     def get_isMyChat(self, obj):
         currentUser = self.context['user']
         return obj.sender == currentUser
+    
+class ExitMessageClientSerializer(serializers.Serializer):
+    otherId = serializers.IntegerField()
