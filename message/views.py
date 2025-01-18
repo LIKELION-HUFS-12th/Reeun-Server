@@ -11,8 +11,42 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
+from member.serializers import GetNameSerializer
 
 # Create your views here.
+class GetMemberAPI(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    @swagger_auto_schema(
+            tags=['쪽지'],
+            operation_summary="쪽지를 하고 있는 유저 목록 조회",
+            operation_description="쪽지를 나누고 있는 유저들의 정보를 조회한다\n\n(상대방이 이름을 설정해두지 않았을 경우 상대방의 name이 null로 표기됨)",
+            responses={200: openapi.Response(
+                description="조회 성공",
+                schema=GetNameSerializer(many=True)
+            )})
+    @method_decorator(permission_classes([IsAuthenticated]))
+    def get(self, request):
+        user = request.user
+        messages = Message.objects.filter(Q(sender=user) | Q(receiver=user))
+        
+        memberList = list()
+        idList = set()
+        for message in messages:
+            if (message.sender == user):
+                if (message.receiver.id not in idList):
+                    idList.add(message.receiver.id)
+                    memberList.append(message.receiver)
+            else:
+                if (message.sender.id not in idList):
+                    idList.add(message.sender.id)
+                    memberList.append(message.sender)
+        print(memberList)
+        
+        serializer = GetNameSerializer(instance=memberList, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class SendMessageAPI(APIView):
     authentication_classes = [JWTAuthentication]
 
