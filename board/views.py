@@ -64,6 +64,9 @@ class BoardList(generics.ListCreateAPIView):
             return Response({"statusCode": 400,
                              "message": "입학년도가 없는 유저는 글을 작성할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
         
+        if user.school is None:
+            return Response({"statusCode": 400,
+                             "message": "등록된 학교가 없는 유저는 글을 작성할 수 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         latestPost = Board.objects.filter(user=user).order_by('-created_at').first()
         if latestPost:
@@ -73,6 +76,7 @@ class BoardList(generics.ListCreateAPIView):
                                  "message": "게시글 작성 후 5분이 지나야 새로 작성 가능합니다."}, status=status.HTTP_400_BAD_REQUEST)
 
         data = request.data.copy()
+        data['user'] = {'id': user.id, 'name': user.name}
         if 'school' in data:
             data.pop('school')
 
@@ -80,6 +84,7 @@ class BoardList(generics.ListCreateAPIView):
         if serializer.is_valid():
             serializer.save(user=request.user, school=user.school, admission_year=admission_year)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
         return Response({"statusCode": 400,
                          "message": "잘못된 요청입니다."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -220,6 +225,7 @@ class CommentList(generics.ListCreateAPIView):
 
         data = request.data.copy()
         data['board'] = post_id
+        data['user'] = {'id': user.id, 'name': user.name}
 
         serializer = self.get_serializer(data=data, context={'request': request})
         if serializer.is_valid():
